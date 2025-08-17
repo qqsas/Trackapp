@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("trackApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5a1990fdeceaa5232a79448ac222d64a692258ce")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2105db3b959967492b7b70fd727b47526c1ea388")]
 [assembly: System.Reflection.AssemblyProductAttribute("trackApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("trackApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
