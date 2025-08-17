@@ -81,59 +81,62 @@ class Program
     }
 
     private static void InitializeDatabase()
+{
+    using (var connection = new SqliteConnection(ConnectionString))
     {
-        using (var connection = new SqliteConnection(ConnectionString))
+        connection.Open();
+
+        // Create main table if it doesn't exist
+        string createTableSql = @"
+        CREATE TABLE IF NOT EXISTS Shows (
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Title TEXT NOT NULL,
+            Genre TEXT,
+            EpisodesWatched INTEGER DEFAULT 0,
+            Status TEXT,
+            Rating REAL
+        );";
+
+        using (var command = new SqliteCommand(createTableSql, connection))
         {
-            connection.Open();
+            command.ExecuteNonQuery();
+        }
 
-            // Create main table if it doesn't exist
-            string createTableSql = @"
-            CREATE TABLE IF NOT EXISTS Shows (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                Title TEXT NOT NULL,
-                Genre TEXT,
-                EpisodesWatched INTEGER DEFAULT 0,
-                Status TEXT,
-                Rating REAL
-            );";
-
-            using (var command = new SqliteCommand(createTableSql, connection))
+        // Check if LastUpdated column exists
+        bool lastUpdatedExists = false;
+        try
+        {
+            string checkColumnSql = "SELECT LastUpdated FROM Shows LIMIT 1;";
+            using (var testCommand = new SqliteCommand(checkColumnSql, connection))
             {
-                command.ExecuteNonQuery();
+                testCommand.ExecuteScalar();
+            }
+            lastUpdatedExists = true;
+        }
+        catch
+        {
+            // Column doesn't exist
+        }
+
+        // If LastUpdated doesn't exist, add it without default
+        if (!lastUpdatedExists)
+        {
+            string addColumnSql = "ALTER TABLE Shows ADD COLUMN LastUpdated DATETIME;";
+            using (var addCommand = new SqliteCommand(addColumnSql, connection))
+            {
+                addCommand.ExecuteNonQuery();
             }
 
-            // Check if LastUpdated column exists
-            bool lastUpdatedExists = false;
-            try
+            // Initialize existing rows with current timestamp
+            string updateSql = "UPDATE Shows SET LastUpdated = datetime('now');";
+            using (var updateCommand = new SqliteCommand(updateSql, connection))
             {
-                string checkColumnSql = "SELECT LastUpdated FROM Shows LIMIT 1;";
-                using (var testCommand = new SqliteCommand(checkColumnSql, connection))
-                {
-                    testCommand.ExecuteScalar();
-                }
-                lastUpdatedExists = true;
-            }
-            catch {}
-
-            // If LastUpdated doesn't exist, add it with proper migration
-            if (!lastUpdatedExists)
-            {
-                // Add LastUpdated column without default
-                string addColumnSql = "ALTER TABLE Shows ADD COLUMN LastUpdated DATETIME;";
-                using (var addCommand = new SqliteCommand(addColumnSql, connection))
-                {
-                    addCommand.ExecuteNonQuery();
-                }
-                
-                // Set initial value for existing records
-                string updateSql = "UPDATE Shows SET LastUpdated = datetime('now');";
-                using (var updateCommand = new SqliteCommand(updateSql, connection))
-                {
-                    updateCommand.ExecuteNonQuery();
-                }
+                updateCommand.ExecuteNonQuery();
             }
         }
     }
+}
+
 
     private static void AddShow()
     {
