@@ -101,6 +101,30 @@ class Program
             {
                 command.ExecuteNonQuery();
             }
+
+            // Add LastUpdated column if missing
+            try
+            {
+                string checkColumnSql = "SELECT LastUpdated FROM Shows LIMIT 1;";
+                using (var testCommand = new SqliteCommand(checkColumnSql, connection))
+                {
+                    testCommand.ExecuteScalar();
+                }
+            }
+            catch
+            {
+                string addColumnSql = "ALTER TABLE Shows ADD COLUMN LastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP;";
+                using (var addCommand = new SqliteCommand(addColumnSql, connection))
+                {
+                    addCommand.ExecuteNonQuery();
+                }
+                
+                string updateSql = "UPDATE Shows SET LastUpdated = CURRENT_TIMESTAMP;";
+                using (var updateCommand = new SqliteCommand(updateSql, connection))
+                {
+                    updateCommand.ExecuteNonQuery();
+                }
+            }
         }
     }
 
@@ -202,7 +226,7 @@ class Program
                         $"- Episodes: {reader["EpisodesWatched"]} " +
                         $"- Status: {reader["Status"]} " +
                         $"- Rating: {GetRatingDisplay(reader["Rating"])} " +
-                        $"- Last Updated: {Convert.ToDateTime(reader["LastUpdated"]):yyyy-MM-dd}"
+                        $"- Last Updated: {GetDateTimeDisplay(reader["LastUpdated"])}"
                     );
                 }
             }
@@ -213,9 +237,15 @@ class Program
 
     private static string GetRatingDisplay(object ratingValue)
     {
-        if (ratingValue is DBNull) return "N/A";
+        if (ratingValue is DBNull || ratingValue == null) return "N/A";
         double rating = Convert.ToDouble(ratingValue);
         return rating == 0 ? "N/A" : rating.ToString("0.0");
+    }
+
+    private static string GetDateTimeDisplay(object dateValue)
+    {
+        if (dateValue is DBNull || dateValue == null) return "N/A";
+        return Convert.ToDateTime(dateValue).ToString("yyyy-MM-dd");
     }
 
     private static void ViewByStatus()
@@ -438,7 +468,7 @@ class Program
                             $"Episodes Watched: {reader["EpisodesWatched"]}\n" +
                             $"Status: {reader["Status"]}\n" +
                             $"Rating: {GetRatingDisplay(reader["Rating"])}\n" +
-                            $"Last Updated: {Convert.ToDateTime(reader["LastUpdated"]):yyyy-MM-dd}\n" +
+                            $"Last Updated: {GetDateTimeDisplay(reader["LastUpdated"])}\n" +
                             new string('-', 40)
                         );
                     }
@@ -468,7 +498,7 @@ class Program
                             $"{reader["EpisodesWatched"]}," +
                             $"\"{reader["Status"]}\"," +
                             $"{GetRatingDisplay(reader["Rating"])}," +
-                            $"\"{Convert.ToDateTime(reader["LastUpdated"]):yyyy-MM-dd}\""
+                            $"\"{GetDateTimeDisplay(reader["LastUpdated"])}\""
                         );
                     }
                 }

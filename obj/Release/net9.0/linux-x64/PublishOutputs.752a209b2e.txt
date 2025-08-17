@@ -1,0 +1,10 @@
+/home/Mushroom/bin/track/trackApp
+/home/Mushroom/bin/track/trackApp.dll
+/home/Mushroom/bin/track/trackApp.deps.json
+/home/Mushroom/bin/track/trackApp.runtimeconfig.json
+/home/Mushroom/bin/track/trackApp.pdb
+/home/Mushroom/bin/track/Microsoft.Data.Sqlite.dll
+/home/Mushroom/bin/track/SQLitePCLRaw.batteries_v2.dll
+/home/Mushroom/bin/track/SQLitePCLRaw.core.dll
+/home/Mushroom/bin/track/SQLitePCLRaw.provider.e_sqlite3.dll
+/home/Mushroom/bin/track/libe_sqlite3.so
