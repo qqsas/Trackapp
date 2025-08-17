@@ -29,4 +29,3 @@ chmod +x ~/bin/track_app/track
 mv ~/bin/track_app/track ~/bin/track
 
 track
-
