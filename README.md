@@ -17,7 +17,6 @@ A simple command-line tool to track your TV shows: add shows, update episodes wa
 
 ## Installation
 
-### Option 1: Using Self-contained Executable (Recommended)
 
 1. Build and publish the app:
 
