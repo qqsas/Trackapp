@@ -86,6 +86,7 @@ class Program
         {
             connection.Open();
 
+            // Create main table if it doesn't exist
             string createTableSql = @"
             CREATE TABLE IF NOT EXISTS Shows (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,8 +94,7 @@ class Program
                 Genre TEXT,
                 EpisodesWatched INTEGER DEFAULT 0,
                 Status TEXT,
-                Rating REAL,
-                LastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP
+                Rating REAL
             );";
 
             using (var command = new SqliteCommand(createTableSql, connection))
@@ -102,7 +102,8 @@ class Program
                 command.ExecuteNonQuery();
             }
 
-            // Add LastUpdated column if missing
+            // Check if LastUpdated column exists
+            bool lastUpdatedExists = false;
             try
             {
                 string checkColumnSql = "SELECT LastUpdated FROM Shows LIMIT 1;";
@@ -110,16 +111,22 @@ class Program
                 {
                     testCommand.ExecuteScalar();
                 }
+                lastUpdatedExists = true;
             }
-            catch
+            catch {}
+
+            // If LastUpdated doesn't exist, add it with proper migration
+            if (!lastUpdatedExists)
             {
-                string addColumnSql = "ALTER TABLE Shows ADD COLUMN LastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP;";
+                // Add LastUpdated column without default
+                string addColumnSql = "ALTER TABLE Shows ADD COLUMN LastUpdated DATETIME;";
                 using (var addCommand = new SqliteCommand(addColumnSql, connection))
                 {
                     addCommand.ExecuteNonQuery();
                 }
                 
-                string updateSql = "UPDATE Shows SET LastUpdated = CURRENT_TIMESTAMP;";
+                // Set initial value for existing records
+                string updateSql = "UPDATE Shows SET LastUpdated = datetime('now');";
                 using (var updateCommand = new SqliteCommand(updateSql, connection))
                 {
                     updateCommand.ExecuteNonQuery();
@@ -155,8 +162,8 @@ class Program
         {
             connection.Open();
             string sql = @"
-            INSERT INTO Shows (Title, Genre, Status)
-            VALUES (@Title, @Genre, @Status);";
+            INSERT INTO Shows (Title, Genre, Status, LastUpdated)
+            VALUES (@Title, @Genre, @Status, datetime('now'));";
 
             using (var command = new SqliteCommand(sql, connection))
             {
@@ -297,7 +304,7 @@ class Program
         using (var connection = new SqliteConnection(ConnectionString))
         {
             connection.Open();
-            string sql = "UPDATE Shows SET EpisodesWatched = @Episodes, LastUpdated = CURRENT_TIMESTAMP WHERE Id = @Id;";
+            string sql = "UPDATE Shows SET EpisodesWatched = @Episodes, LastUpdated = datetime('now') WHERE Id = @Id;";
             using (var command = new SqliteCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Episodes", episodes);
@@ -338,7 +345,7 @@ class Program
         using (var connection = new SqliteConnection(ConnectionString))
         {
             connection.Open();
-            string sql = "UPDATE Shows SET Status = @Status, LastUpdated = CURRENT_TIMESTAMP WHERE Id = @Id;";
+            string sql = "UPDATE Shows SET Status = @Status, LastUpdated = datetime('now') WHERE Id = @Id;";
             using (var command = new SqliteCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Status", status);
@@ -372,7 +379,7 @@ class Program
         using (var connection = new SqliteConnection(ConnectionString))
         {
             connection.Open();
-            string sql = "UPDATE Shows SET Rating = @Rating, LastUpdated = CURRENT_TIMESTAMP WHERE Id = @Id;";
+            string sql = "UPDATE Shows SET Rating = @Rating, LastUpdated = datetime('now') WHERE Id = @Id;";
             using (var command = new SqliteCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@Rating", rating);
