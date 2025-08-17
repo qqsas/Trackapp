@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "MlyWmqUEMgk=",
+  "dgSpecHash": "2SobZvrYgv4=",
   "success": true,
   "projectFilePath": "/home/Mushroom/Documents/myGitProjects/trackApp/trackApp.csproj",
   "expectedPackageFiles": [
@@ -11,7 +11,10 @@
     "/home/Mushroom/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.10/sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",
     "/home/Mushroom/.nuget/packages/sqlitepclraw.provider.e_sqlite3/2.1.10/sqlitepclraw.provider.e_sqlite3.2.1.10.nupkg.sha512",
     "/home/Mushroom/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
-    "/home/Mushroom/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.8/microsoft.aspnetcore.app.ref.9.0.8.nupkg.sha512"
+    "/home/Mushroom/.nuget/packages/microsoft.netcore.app.runtime.linux-x64/9.0.8/microsoft.netcore.app.runtime.linux-x64.9.0.8.nupkg.sha512",
+    "/home/Mushroom/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.8/microsoft.aspnetcore.app.ref.9.0.8.nupkg.sha512",
+    "/home/Mushroom/.nuget/packages/microsoft.aspnetcore.app.runtime.linux-x64/9.0.8/microsoft.aspnetcore.app.runtime.linux-x64.9.0.8.nupkg.sha512",
+    "/home/Mushroom/.nuget/packages/microsoft.netcore.app.host.linux-x64/9.0.8/microsoft.netcore.app.host.linux-x64.9.0.8.nupkg.sha512"
   ],
   "logs": []
 }

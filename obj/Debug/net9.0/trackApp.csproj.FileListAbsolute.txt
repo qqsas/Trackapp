@@ -39,3 +39,4 @@
 /home/Mushroom/Documents/myGitProjects/trackApp/obj/Debug/net9.0/trackApp.pdb
 /home/Mushroom/Documents/myGitProjects/trackApp/obj/Debug/net9.0/trackApp.genruntimeconfig.cache
 /home/Mushroom/Documents/myGitProjects/trackApp/obj/Debug/net9.0/ref/trackApp.dll
+/home/Mushroom/Documents/myGitProjects/trackApp/obj/Debug/net9.0/trackApp.sourcelink.json
