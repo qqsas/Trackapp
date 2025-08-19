@@ -16,10 +16,12 @@ A simple command-line tool to track your TV shows: add shows, update episodes wa
 - .NET 8+ (or use the self-contained executable below)  
 
 ## Installation
+1. Standard
+```bash
+dotnet tool install --global --add-source ./nupkg trackApp
+```
 
-
-1. Build and publish the app:
-
+2. Build and publish the app:
 ```bash
 #linux
 dotnet publish -c Release -r linux-x64 --self-contained true -o ~/bin/track_app
