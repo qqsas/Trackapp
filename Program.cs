@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using Microsoft.Data.Sqlite;
 using System.IO;
 using System.Collections.Generic;
@@ -6,12 +6,9 @@ using System.Linq;
 
 class Program
 {
-    private const string DatabaseFile = "shows.db";
-    private static readonly string ConnectionString = new SqliteConnectionStringBuilder
-    {
-        DataSource = DatabaseFile,
-        Mode = SqliteOpenMode.ReadWriteCreate
-    }.ToString();
+    private static string DatabaseFile = "shows.db";
+    private static string ConfigFile = "dbconfig.txt";
+    private static string ConnectionString = "";
 
     private static readonly List<string> ValidStatuses = new List<string>
     {
@@ -21,6 +18,8 @@ class Program
     static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+        SetupDatabasePath();
         InitializeDatabase();
 
         while (true)
@@ -35,6 +34,7 @@ class Program
             Console.WriteLine("5. Rate a Show");
             Console.WriteLine("6. Delete a Show");
             Console.WriteLine("7. Export to File");
+            Console.WriteLine("8. Change Database Directory");
             Console.WriteLine("0. Exit");
             Console.Write("Select an option: ");
 
@@ -49,12 +49,89 @@ class Program
                 case "5": RateShow(); break;
                 case "6": DeleteShow(); break;
                 case "7": ExportToFile(); break;
+                case "8": ChangeDatabaseDirectory(); break;
                 case "0": return;
                 default:
                     Console.WriteLine("❌ Invalid option, try again.");
                     Console.ReadKey(); break;
             }
         }
+    }
+
+    private static void SetupDatabasePath()
+    {
+        if (File.Exists(ConfigFile))
+        {
+            DatabaseFile = File.ReadAllText(ConfigFile).Trim();
+        }
+        else
+        {
+            Console.WriteLine("📂 No database path set.");
+            Console.Write("Enter directory where the database should be created: ");
+            string? dir = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
+            {
+                Console.WriteLine("⚠ Invalid directory. Using current directory.");
+                dir = Directory.GetCurrentDirectory();
+            }
+
+            DatabaseFile = Path.Combine(dir, "shows.db");
+            File.WriteAllText(ConfigFile, DatabaseFile);
+
+            Console.WriteLine($"✅ Database will be stored at: {DatabaseFile}");
+            Console.ReadKey();
+        }
+
+        BuildConnectionString();
+    }
+
+    private static void BuildConnectionString()
+    {
+        ConnectionString = new SqliteConnectionStringBuilder
+        {
+            DataSource = DatabaseFile,
+            Mode = SqliteOpenMode.ReadWriteCreate
+        }.ToString();
+    }
+
+    private static void ChangeDatabaseDirectory()
+    {
+        Console.Clear();
+        Console.WriteLine("📂 Change Database Directory");
+        Console.Write("Enter new directory path: ");
+        string? dir = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
+        {
+            Console.WriteLine("⚠ Invalid directory. No changes made.");
+            Console.ReadKey();
+            return;
+        }
+
+        string newDbFile = Path.Combine(dir, "shows.db");
+
+        try
+        {
+            if (File.Exists(DatabaseFile))
+            {
+                File.Copy(DatabaseFile, newDbFile, true);
+            }
+
+            DatabaseFile = newDbFile;
+            File.WriteAllText(ConfigFile, DatabaseFile);
+
+            BuildConnectionString();
+            InitializeDatabase();
+
+            Console.WriteLine($"✅ Database directory changed successfully!\nNew Path: {DatabaseFile}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error changing directory: {ex.Message}");
+        }
+
+        Console.ReadKey();
     }
 
     private static void ShowQuickSummary()
@@ -104,7 +181,6 @@ class Program
                 command.ExecuteNonQuery();
             }
 
-            // Migration check for missing columns
             EnsureColumnExists(connection, "SeasonNumber", "INTEGER DEFAULT 0");
             EnsureColumnExists(connection, "EpisodeNumber", "INTEGER DEFAULT 0");
             EnsureColumnExists(connection, "LastUpdated", "DATETIME");
@@ -134,9 +210,7 @@ class Program
                     updateCommand.ExecuteNonQuery();
             }
         }
-    }
-
-    private static void AddShow()
+    }private static void AddShow()
     {
         Console.Clear();
         Console.Write("Enter show title: ");
@@ -179,6 +253,9 @@ class Program
         Console.ReadKey();
     }
 
+    // ⚠ Remaining functions unchanged (ViewShowsMenu, ViewShows, UpdateEpisodes, UpdateStatus, RateShow, DeleteShow, ExportToFile, ExportToTextFile, ExportToCSVFile) 
+    // They already use ConnectionString dynamically.
+    
     private static void ViewShowsMenu()
     {
         while (true)
