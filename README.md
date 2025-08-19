@@ -21,7 +21,11 @@ A simple command-line tool to track your TV shows: add shows, update episodes wa
 1. Build and publish the app:
 
 ```bash
+#linux
 dotnet publish -c Release -r linux-x64 --self-contained true -o ~/bin/track_app
+
+#windows
+dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 
 Make it executable:
 chmod +x ~/bin/track_app/track
