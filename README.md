@@ -27,6 +27,9 @@ dotnet publish -c Release -r linux-x64 --self-contained true -o ~/bin/track_app
 #windows
 dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 
+#any OS
+dotnet tool install --global --add-source ./nupkg trackApp
+
 Make it executable:
 chmod +x ~/bin/track_app/track
 mv ~/bin/track_app/track ~/bin/track
