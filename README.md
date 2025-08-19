@@ -16,8 +16,7 @@ A simple command-line tool to track your TV shows: add shows, update episodes wa
 - .NET 8+ (or use the self-contained executable below)  
 
 ## Installation
--Clone Repository
--Go to file location in terminal and do either of the bash code
+-Clone Repository then Go to file location in terminal and do either of the bash code
 
 1. Standard
 ```bash
