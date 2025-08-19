@@ -7,13 +7,19 @@ using System.Linq;
 class Program
 {
     private static string DatabaseFile = "";
-    private static string ConfigFile = "dbconfig.txt";
     private static string ConnectionString = "";
 
     private static readonly List<string> ValidStatuses = new List<string>
     {
         "Watching", "Completed", "On Hold", "Dropped", "Plan to Watch"
     };
+
+    // ConfigFile now stored in user's AppData folder
+    private static readonly string AppDataDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ShowTracker"
+    );
+    private static readonly string ConfigFile = Path.Combine(AppDataDir, "dbconfig.txt");
 
     static void Main(string[] args)
     {
@@ -60,13 +66,8 @@ class Program
 
     private static void SetupDatabasePath()
     {
-        string appDataDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ShowTracker"
-        );
-
-        if (!Directory.Exists(appDataDir))
-            Directory.CreateDirectory(appDataDir);
+        if (!Directory.Exists(AppDataDir))
+            Directory.CreateDirectory(AppDataDir);
 
         if (File.Exists(ConfigFile))
         {
@@ -75,12 +76,12 @@ class Program
         else
         {
             Console.WriteLine("📂 No database path set.");
-            Console.WriteLine($"By default, the database will be stored here:\n{appDataDir}");
+            Console.WriteLine($"By default, the database will be stored here:\n{AppDataDir}");
             Console.Write("Press Enter to accept or type a custom directory: ");
             string? inputDir = Console.ReadLine();
 
             string finalDir = string.IsNullOrWhiteSpace(inputDir) || !Directory.Exists(inputDir)
-                ? appDataDir
+                ? AppDataDir
                 : inputDir;
 
             DatabaseFile = Path.Combine(finalDir, "shows.db");
@@ -183,9 +184,7 @@ class Program
             );";
 
             using (var command = new SqliteCommand(createTableSql, connection))
-            {
                 command.ExecuteNonQuery();
-            }
 
             EnsureColumnExists(connection, "SeasonNumber", "INTEGER DEFAULT 0");
             EnsureColumnExists(connection, "EpisodeNumber", "INTEGER DEFAULT 0");
@@ -199,9 +198,7 @@ class Program
         {
             string checkCol = $"SELECT {columnName} FROM Shows LIMIT 1;";
             using (var testCommand = new SqliteCommand(checkCol, connection))
-            {
                 testCommand.ExecuteScalar();
-            }
         }
         catch
         {
@@ -217,8 +214,6 @@ class Program
             }
         }
     }
-
-
 private static void AddShow()
     {
         Console.Clear();
