@@ -19,6 +19,9 @@ A simple command-line tool to track your TV shows: add shows, update episodes wa
 1. Standard
 ```bash
 dotnet tool install --global --add-source ./nupkg trackApp
+
+#For macOS and linux onlu
+export PATH="$PATH:$HOME/.dotnet/tools"
 ```
 
 2. Build and publish the app:
