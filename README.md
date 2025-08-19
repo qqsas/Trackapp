@@ -12,7 +12,6 @@ A simple command-line tool to track your TV shows: add shows, update episodes wa
 
 ## Requirements
 
-- Linux (tested)  
 - .NET 8+ (or use the self-contained executable below)  
 
 ## Installation
