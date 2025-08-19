@@ -257,8 +257,6 @@ private static void AddShow()
         Console.ReadKey();
     }
 
-    // ⚠ Remaining functions unchanged (ViewShowsMenu, ViewShows, UpdateEpisodes, UpdateStatus, RateShow, DeleteShow, ExportToFile, ExportToTextFile, ExportToCSVFile) 
-    // They already use ConnectionString dynamically.
     
     private static void ViewShowsMenu()
     {
@@ -283,10 +281,22 @@ private static void AddShow()
                     Console.WriteLine("\nPress any key to continue...");
                     Console.ReadKey();
                     break;
-                case "2": ViewByStatus(); break;
-                case "3": ViewShows("ORDER BY Rating DESC"); break;
-                case "4": ViewShows("ORDER BY LastUpdated DESC LIMIT 10"); break;
-                case "5": ViewByGenre(); break;
+                case "2": ViewByStatus();
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+		    break;
+                case "3": ViewShows("ORDER BY Rating DESC");
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+		    break;
+                case "4": ViewShows("ORDER BY LastUpdated DESC LIMIT 10"); 
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+		    break;
+                case "5": ViewByGenre();
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+		    break;
                 case "0": return;
                 default:
                     Console.WriteLine("❌ Invalid option, try again.");

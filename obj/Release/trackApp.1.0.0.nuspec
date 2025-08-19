@@ -8,7 +8,7 @@
     <packageTypes>
       <packageType name="DotnetTool" />
     </packageTypes>
-    <repository type="git" commit="32abf06e92c6fe2d430c5941823e7e2495c09295" />
+    <repository type="git" commit="f84cfedcc1d4c061d83eb9c9a2626ccd385ab00f" />
   </metadata>
   <files>
     <file src="/home/Mushroom/Documents/myGitProjects/trackApp/obj/Release/net9.0/DotnetToolSettings.xml" target="tools/net9.0/any/DotnetToolSettings.xml" />
