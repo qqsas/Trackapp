@@ -4,6 +4,59 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
+namespace trackApp
+{
+    public static class DatabaseHelper
+    {
+        private static string connectionString = "Data Source=shows.db";
+
+        static DatabaseHelper()
+        {
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            string tableCommand = @"
+                CREATE TABLE IF NOT EXISTS Shows (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Name TEXT NOT NULL
+                )";
+
+            using var createTable = new SqliteCommand(tableCommand, connection);
+            createTable.ExecuteNonQuery();
+        }
+
+        public static void AddShow(string name)
+        {
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = "INSERT INTO Shows (Name) VALUES ($name)";
+            insertCommand.Parameters.AddWithValue("$name", name);
+            insertCommand.ExecuteNonQuery();
+        }
+
+        public static List<string> ViewShows()
+        {
+            var shows = new List<string>();
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = "SELECT Name FROM Shows";
+
+            using var reader = selectCommand.ExecuteReader();
+            while (reader.Read())
+            {
+                shows.Add(reader.GetString(0));
+            }
+
+            return shows;
+        }
+    }
+}
+
 class Program
 {
     private static string DatabaseFile = "";
