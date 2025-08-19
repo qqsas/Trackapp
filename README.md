@@ -17,6 +17,7 @@ A simple command-line tool to track your TV shows: add shows, update episodes wa
 
 ## Installation
 Clone Repository
+
 Go to file location in terminal and do either of the bash code
 
 1. Standard
