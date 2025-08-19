@@ -1,4 +1,4 @@
-﻿    using System;
+﻿using System;
 using Microsoft.Data.Sqlite;
 using System.IO;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 
 class Program
 {
-    private static string DatabaseFile = "shows.db";
+    private static string DatabaseFile = "";
     private static string ConfigFile = "dbconfig.txt";
     private static string ConnectionString = "";
 
@@ -60,6 +60,14 @@ class Program
 
     private static void SetupDatabasePath()
     {
+        string appDataDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ShowTracker"
+        );
+
+        if (!Directory.Exists(appDataDir))
+            Directory.CreateDirectory(appDataDir);
+
         if (File.Exists(ConfigFile))
         {
             DatabaseFile = File.ReadAllText(ConfigFile).Trim();
@@ -67,16 +75,16 @@ class Program
         else
         {
             Console.WriteLine("📂 No database path set.");
-            Console.Write("Enter directory where the database should be created: ");
-            string? dir = Console.ReadLine();
+            Console.WriteLine($"By default, the database will be stored here:\n{appDataDir}");
+            Console.Write("Press Enter to accept or type a custom directory: ");
+            string? inputDir = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
-            {
-                Console.WriteLine("⚠ Invalid directory. Using current directory.");
-                dir = Directory.GetCurrentDirectory();
-            }
+            string finalDir = string.IsNullOrWhiteSpace(inputDir) || !Directory.Exists(inputDir)
+                ? appDataDir
+                : inputDir;
 
-            DatabaseFile = Path.Combine(dir, "shows.db");
+            DatabaseFile = Path.Combine(finalDir, "shows.db");
+
             File.WriteAllText(ConfigFile, DatabaseFile);
 
             Console.WriteLine($"✅ Database will be stored at: {DatabaseFile}");
@@ -114,9 +122,7 @@ class Program
         try
         {
             if (File.Exists(DatabaseFile))
-            {
                 File.Copy(DatabaseFile, newDbFile, true);
-            }
 
             DatabaseFile = newDbFile;
             File.WriteAllText(ConfigFile, DatabaseFile);
@@ -210,7 +216,10 @@ class Program
                     updateCommand.ExecuteNonQuery();
             }
         }
-    }private static void AddShow()
+    }
+
+
+private static void AddShow()
     {
         Console.Clear();
         Console.Write("Enter show title: ");
