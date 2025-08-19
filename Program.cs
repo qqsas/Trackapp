@@ -13,9 +13,9 @@ class Program
         Mode = SqliteOpenMode.ReadWriteCreate
     }.ToString();
 
-    private static readonly List<string> ValidStatuses = new List<string> 
-    { 
-        "Watching", "Completed", "On Hold", "Dropped", "Plan to Watch" 
+    private static readonly List<string> ValidStatuses = new List<string>
+    {
+        "Watching", "Completed", "On Hold", "Dropped", "Plan to Watch"
     };
 
     static void Main(string[] args)
@@ -30,14 +30,14 @@ class Program
             Console.WriteLine("\n📺 Show Tracker");
             Console.WriteLine("1. Add Show");
             Console.WriteLine("2. View Shows");
-            Console.WriteLine("3. Update Episodes");
+            Console.WriteLine("3. Update Progress (Season/Episode)");
             Console.WriteLine("4. Update Status");
             Console.WriteLine("5. Rate a Show");
             Console.WriteLine("6. Delete a Show");
             Console.WriteLine("7. Export to File");
             Console.WriteLine("0. Exit");
             Console.Write("Select an option: ");
-            
+
             string? choice = Console.ReadLine();
 
             switch (choice)
@@ -50,8 +50,9 @@ class Program
                 case "6": DeleteShow(); break;
                 case "7": ExportToFile(); break;
                 case "0": return;
-                default: Console.WriteLine("❌ Invalid option, try again."); 
-                         Console.ReadKey(); break;
+                default:
+                    Console.WriteLine("❌ Invalid option, try again.");
+                    Console.ReadKey(); break;
             }
         }
     }
@@ -81,62 +82,59 @@ class Program
     }
 
     private static void InitializeDatabase()
-{
-    using (var connection = new SqliteConnection(ConnectionString))
     {
-        connection.Open();
-
-        // Create main table if it doesn't exist
-        string createTableSql = @"
-        CREATE TABLE IF NOT EXISTS Shows (
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Title TEXT NOT NULL,
-            Genre TEXT,
-            EpisodesWatched INTEGER DEFAULT 0,
-            Status TEXT,
-            Rating REAL
-        );";
-
-        using (var command = new SqliteCommand(createTableSql, connection))
+        using (var connection = new SqliteConnection(ConnectionString))
         {
-            command.ExecuteNonQuery();
-        }
+            connection.Open();
 
-        // Check if LastUpdated column exists
-        bool lastUpdatedExists = false;
+            string createTableSql = @"
+            CREATE TABLE IF NOT EXISTS Shows (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Title TEXT NOT NULL,
+                Genre TEXT,
+                SeasonNumber INTEGER DEFAULT 0,
+                EpisodeNumber INTEGER DEFAULT 0,
+                Status TEXT,
+                Rating REAL,
+                LastUpdated DATETIME
+            );";
+
+            using (var command = new SqliteCommand(createTableSql, connection))
+            {
+                command.ExecuteNonQuery();
+            }
+
+            // Migration check for missing columns
+            EnsureColumnExists(connection, "SeasonNumber", "INTEGER DEFAULT 0");
+            EnsureColumnExists(connection, "EpisodeNumber", "INTEGER DEFAULT 0");
+            EnsureColumnExists(connection, "LastUpdated", "DATETIME");
+        }
+    }
+
+    private static void EnsureColumnExists(SqliteConnection connection, string columnName, string columnType)
+    {
         try
         {
-            string checkColumnSql = "SELECT LastUpdated FROM Shows LIMIT 1;";
-            using (var testCommand = new SqliteCommand(checkColumnSql, connection))
+            string checkCol = $"SELECT {columnName} FROM Shows LIMIT 1;";
+            using (var testCommand = new SqliteCommand(checkCol, connection))
             {
                 testCommand.ExecuteScalar();
             }
-            lastUpdatedExists = true;
         }
         catch
         {
-            // Column doesn't exist
-        }
-
-        // If LastUpdated doesn't exist, add it without default
-        if (!lastUpdatedExists)
-        {
-            string addColumnSql = "ALTER TABLE Shows ADD COLUMN LastUpdated DATETIME;";
-            using (var addCommand = new SqliteCommand(addColumnSql, connection))
-            {
+            string addCol = $"ALTER TABLE Shows ADD COLUMN {columnName} {columnType};";
+            using (var addCommand = new SqliteCommand(addCol, connection))
                 addCommand.ExecuteNonQuery();
-            }
 
-            // Initialize existing rows with current timestamp
-            string updateSql = "UPDATE Shows SET LastUpdated = datetime('now');";
-            using (var updateCommand = new SqliteCommand(updateSql, connection))
+            if (columnName == "LastUpdated")
             {
-                updateCommand.ExecuteNonQuery();
+                string updateSql = "UPDATE Shows SET LastUpdated = datetime('now');";
+                using (var updateCommand = new SqliteCommand(updateSql, connection))
+                    updateCommand.ExecuteNonQuery();
             }
         }
     }
-}
-
 
     private static void AddShow()
     {
@@ -150,7 +148,7 @@ class Program
         Console.WriteLine("\nAvailable statuses:");
         for (int i = 0; i < ValidStatuses.Count; i++)
         {
-            Console.WriteLine($"{i+1}. {ValidStatuses[i]}");
+            Console.WriteLine($"{i + 1}. {ValidStatuses[i]}");
         }
 
         int statusChoice;
@@ -158,7 +156,7 @@ class Program
         {
             Console.Write("Select status (1-5): ");
         } while (!int.TryParse(Console.ReadLine(), out statusChoice) || statusChoice < 1 || statusChoice > 5);
-        
+
         string status = ValidStatuses[statusChoice - 1];
 
         using (var connection = new SqliteConnection(ConnectionString))
@@ -177,7 +175,7 @@ class Program
             }
         }
 
-        Console.WriteLine("\n✅ Show added!");
+        Console.WriteLine("\n✅ Show added (Press Enter to Continue)!");
         Console.ReadKey();
     }
 
@@ -194,19 +192,24 @@ class Program
             Console.WriteLine("5. View by Genre");
             Console.WriteLine("0. Back to Main Menu");
             Console.Write("Select an option: ");
-            
+
             string? choice = Console.ReadLine();
 
             switch (choice)
             {
-                case "1": ViewShows(""); break;
+                case "1":
+                    ViewShows("");
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+                    break;
                 case "2": ViewByStatus(); break;
                 case "3": ViewShows("ORDER BY Rating DESC"); break;
                 case "4": ViewShows("ORDER BY LastUpdated DESC LIMIT 10"); break;
                 case "5": ViewByGenre(); break;
                 case "0": return;
-                default: Console.WriteLine("❌ Invalid option, try again."); 
-                         Console.ReadKey(); break;
+                default:
+                    Console.WriteLine("❌ Invalid option, try again.");
+                    Console.ReadKey(); break;
             }
         }
     }
@@ -233,7 +236,7 @@ class Program
                 {
                     Console.WriteLine(
                         $"[{reader["Id"]}] {reader["Title"]} ({reader["Genre"]}) " +
-                        $"- Episodes: {reader["EpisodesWatched"]} " +
+                        $"- Progress: S{reader["SeasonNumber"]}E{reader["EpisodeNumber"]} " +
                         $"- Status: {reader["Status"]} " +
                         $"- Rating: {GetRatingDisplay(reader["Rating"])} " +
                         $"- Last Updated: {GetDateTimeDisplay(reader["LastUpdated"])}"
@@ -241,8 +244,6 @@ class Program
                 }
             }
         }
-        Console.WriteLine("\nPress any key to continue...");
-        Console.ReadKey();
     }
 
     private static string GetRatingDisplay(object ratingValue)
@@ -264,7 +265,7 @@ class Program
         Console.WriteLine("Available statuses:");
         for (int i = 0; i < ValidStatuses.Count; i++)
         {
-            Console.WriteLine($"{i+1}. {ValidStatuses[i]}");
+            Console.WriteLine($"{i + 1}. {ValidStatuses[i]}");
         }
 
         int choice;
@@ -291,32 +292,41 @@ class Program
 
     private static void UpdateEpisodes()
     {
-        Console.Clear();
+        ViewShows("");
         int id;
         do
         {
             Console.Write("Enter show ID: ");
         } while (!int.TryParse(Console.ReadLine(), out id));
 
-        int episodes;
+        int season;
         do
         {
-            Console.Write("Enter episodes watched: ");
-        } while (!int.TryParse(Console.ReadLine(), out episodes));
+            Console.Write("Enter season number: ");
+        } while (!int.TryParse(Console.ReadLine(), out season));
+
+        int episode;
+        do
+        {
+            Console.Write("Enter episode number: ");
+        } while (!int.TryParse(Console.ReadLine(), out episode));
 
         using (var connection = new SqliteConnection(ConnectionString))
         {
             connection.Open();
-            string sql = "UPDATE Shows SET EpisodesWatched = @Episodes, LastUpdated = datetime('now') WHERE Id = @Id;";
+            string sql = @"UPDATE Shows 
+                           SET SeasonNumber = @Season, EpisodeNumber = @Episode, LastUpdated = datetime('now') 
+                           WHERE Id = @Id;";
             using (var command = new SqliteCommand(sql, connection))
             {
-                command.Parameters.AddWithValue("@Episodes", episodes);
+                command.Parameters.AddWithValue("@Season", season);
+                command.Parameters.AddWithValue("@Episode", episode);
                 command.Parameters.AddWithValue("@Id", id);
                 int affected = command.ExecuteNonQuery();
                 if (affected == 0)
                     Console.WriteLine("❌ Show not found!");
                 else
-                    Console.WriteLine("✅ Episodes updated!");
+                    Console.WriteLine("✅ Progress updated!");
             }
         }
         Console.ReadKey();
@@ -325,6 +335,7 @@ class Program
     private static void UpdateStatus()
     {
         Console.Clear();
+        ViewShows("");
         int id;
         do
         {
@@ -334,7 +345,7 @@ class Program
         Console.WriteLine("\nAvailable statuses:");
         for (int i = 0; i < ValidStatuses.Count; i++)
         {
-            Console.WriteLine($"{i+1}. {ValidStatuses[i]}");
+            Console.WriteLine($"{i + 1}. {ValidStatuses[i]}");
         }
 
         int statusChoice;
@@ -342,7 +353,7 @@ class Program
         {
             Console.Write("Select new status (1-5): ");
         } while (!int.TryParse(Console.ReadLine(), out statusChoice) || statusChoice < 1 || statusChoice > 5);
-        
+
         string status = ValidStatuses[statusChoice - 1];
 
         using (var connection = new SqliteConnection(ConnectionString))
@@ -366,6 +377,7 @@ class Program
     private static void RateShow()
     {
         Console.Clear();
+        ViewShows("");
         int id;
         do
         {
@@ -400,6 +412,7 @@ class Program
     private static void DeleteShow()
     {
         Console.Clear();
+        ViewShows("");
         int id;
         do
         {
@@ -430,7 +443,7 @@ class Program
         Console.WriteLine("1. Text File");
         Console.WriteLine("2. CSV File");
         Console.Write("Your choice: ");
-        
+
         string? choice = Console.ReadLine();
         string fileName = $"shows_export_{DateTime.Now:yyyyMMddHHmmss}";
 
@@ -462,7 +475,7 @@ class Program
         {
             writer.WriteLine("📋 Show Tracker Export");
             writer.WriteLine($"Generated on: {DateTime.Now}\n");
-            
+
             using (var connection = new SqliteConnection(ConnectionString))
             {
                 connection.Open();
@@ -475,7 +488,7 @@ class Program
                         writer.WriteLine(
                             $"Title: {reader["Title"]}\n" +
                             $"Genre: {reader["Genre"]}\n" +
-                            $"Episodes Watched: {reader["EpisodesWatched"]}\n" +
+                            $"Progress: S{reader["SeasonNumber"]}E{reader["EpisodeNumber"]}\n" +
                             $"Status: {reader["Status"]}\n" +
                             $"Rating: {GetRatingDisplay(reader["Rating"])}\n" +
                             $"Last Updated: {GetDateTimeDisplay(reader["LastUpdated"])}\n" +
@@ -491,8 +504,8 @@ class Program
     {
         using (var writer = new StreamWriter(fileName))
         {
-            writer.WriteLine("Title,Genre,EpisodesWatched,Status,Rating,LastUpdated");
-            
+            writer.WriteLine("Title,Genre,SeasonNumber,EpisodeNumber,Status,Rating,LastUpdated");
+
             using (var connection = new SqliteConnection(ConnectionString))
             {
                 connection.Open();
@@ -505,7 +518,8 @@ class Program
                         writer.WriteLine(
                             $"\"{reader["Title"]}\"," +
                             $"\"{reader["Genre"]}\"," +
-                            $"{reader["EpisodesWatched"]}," +
+                            $"{reader["SeasonNumber"]}," +
+                            $"{reader["EpisodeNumber"]}," +
                             $"\"{reader["Status"]}\"," +
                             $"{GetRatingDisplay(reader["Rating"])}," +
                             $"\"{GetDateTimeDisplay(reader["LastUpdated"])}\""
@@ -516,3 +530,4 @@ class Program
         }
     }
 }
+
